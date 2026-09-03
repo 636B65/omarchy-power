@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Replace hardcoded `/home/user/.config/omarchy/power/switch-power-behavior.sh`
+  paths in udev rule and systemd service with the documented install location
+  `/usr/local/bin/omarchy-power-behavior`.
+
 ## [1.0.0] - 2026-09-03
 
 ### Added

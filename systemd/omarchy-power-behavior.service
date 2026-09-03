@@ -4,7 +4,7 @@ After=systemd-logind.service
 
 [Service]
 Type=oneshot
-ExecStart=/home/user/.config/omarchy/power/switch-power-behavior.sh
+ExecStart=/usr/local/bin/omarchy-power-behavior
 
 [Install]
 WantedBy=multi-user.target

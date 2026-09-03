@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-03
+
 ### Fixed
 
 - Replace hardcoded `/home/user/.config/omarchy/power/switch-power-behavior.sh`

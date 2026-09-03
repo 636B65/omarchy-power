@@ -51,6 +51,19 @@ jobs:
             echo "No systemd unit files found"
             exit 0
           fi
+          # systemd-analyze verify fails if an ExecStart target does not exist
+          # on the runner. Create stub executables for every path referenced by
+          # an ExecStart line so structure and syntax are validated while
+          # machine-local install paths stay valid.
+          while read -r exe; do
+            exe=${exe#*=}
+            if [[ $exe == /* ]]; then
+              mkdir -p "$(dirname "$exe")"
+              touch "$exe"
+              chmod +x "$exe"
+            fi
+          done < <(grep -h -E '^\s*ExecStart=' "${units[@]}" | sed 's/^[[:space:]]*//')
+
           echo "Verifying ${#units[@]} systemd unit file(s)..."
           for f in "${units[@]}"; do
             echo -n "  $f ... "

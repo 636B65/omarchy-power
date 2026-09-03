@@ -1,0 +1,10 @@
+[Unit]
+Description=Apply power behavior for current AC/battery state
+After=systemd-logind.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/user/.config/omarchy/power/switch-power-behavior.sh
+
+[Install]
+WantedBy=multi-user.target

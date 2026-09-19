@@ -3,6 +3,21 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- **Configuration TUI** (`omarchy-power-config`): interactive editor for the
+  per-power-source logind behavior (idle action / timeout, lid close on
+  normal, external power, and docked) and the shell idle timings
+  (screensaver / screen off-lock). No external dependencies; pure stdlib
+  `curses`. Applying writes the central config under sudo, regenerates the
+  logind drop-in, and updates `~/.config/omarchy/shell.json`.
+- **Central config** (`config/power.conf` → `/etc/omarchy-power/power.conf`):
+  `switch-power-behavior.sh` now reads AC/battery profiles from this file
+  (falling back to the previous hardcoded defaults when absent), overridable
+  via the `POWER_CONFIG` environment variable.
+
 ## [1.0.1] - 2026-09-03
 
 ### Fixed

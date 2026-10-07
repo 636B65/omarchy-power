@@ -32,10 +32,48 @@ BATTERY_LID_SWITCH="suspend"
 BATTERY_LID_SWITCH_EXTERNAL_POWER="suspend"
 BATTERY_LID_SWITCH_DOCKED="ignore"
 
-# Load only plain KEY=VALUE lines (the config format), never arbitrary code.
-if [[ -r $CONFIG ]]; then
-  eval "$(grep -E '^[A-Z][A-Z0-9_]*=' "$CONFIG")"
-fi
+# Load only plain KEY=VALUE lines from the config and validate them before
+# assigning them to shell variables. This avoids eval-based execution while still
+# supporting the repo's config format.
+read_config() {
+  local line key value
+
+  [[ -r "$CONFIG" ]] || return 0
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    [[ "$line" != *=* ]] && continue
+
+    key="${line%%=*}"
+    value="${line#*=}"
+
+    key="${key//[[:space:]]/}"
+    value="${value#${value%%[![:space:]]*}}"
+    value="${value%${value##*[![:space:]]}}"
+
+    if [[ ! "$key" =~ ^[A-Z][A-Z0-9_]*$ ]]; then
+      continue
+    fi
+
+    case "$key" in
+      AC_IDLE_ACTION|AC_LID_SWITCH|AC_LID_SWITCH_EXTERNAL_POWER|AC_LID_SWITCH_DOCKED|BATTERY_IDLE_ACTION|BATTERY_LID_SWITCH|BATTERY_LID_SWITCH_EXTERNAL_POWER|BATTERY_LID_SWITCH_DOCKED)
+        if [[ "$value" =~ ^[A-Za-z0-9_-]+$ ]]; then
+          printf -v "$key" '%s' "$value"
+        fi
+        ;;
+      AC_IDLE_ACTION_SEC|BATTERY_IDLE_ACTION_SEC)
+        if [[ "$value" =~ ^[0-9]+$ ]]; then
+          printf -v "$key" '%s' "$value"
+        fi
+        ;;
+      *)
+        ;;
+    esac
+  done < "$CONFIG"
+}
+
+read_config
 
 power_source="${1:-}"
 if [[ -z $power_source ]]; then

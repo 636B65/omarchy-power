@@ -49,8 +49,8 @@ read_config() {
     value="${line#*=}"
 
     key="${key//[[:space:]]/}"
-    value="${value#${value%%[![:space:]]*}}"
-    value="${value%${value##*[![:space:]]}}"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
 
     if [[ ! "$key" =~ ^[A-Z][A-Z0-9_]*$ ]]; then
       continue

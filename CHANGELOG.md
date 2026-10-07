@@ -18,6 +18,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   (falling back to the previous hardcoded defaults when absent), overridable
   via the `POWER_CONFIG` environment variable.
 
+## [1.0.2] - 2026-10-07
+
+### Fixed
+
+- Hardened `switch-power-behavior.sh` by removing the unsafe `eval` config loader
+  and replacing it with strict validation of the supported AC/battery keys and
+  numeric idle timeout values.
+
 ## [1.0.1] - 2026-09-03
 
 ### Fixed

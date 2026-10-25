@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "omarchy-power.idle-sleep",
+  "name": "Idle sleep",
+  "version": "2.0.0",
+  "author": "omarchy-power",
+  "license": "MIT",
+  "description": "Suspend (or hibernate) after a per-power-source idle timeout. Respects Stay Awake and idle inhibitors.",
+  "kinds": [
+    "service"
+  ],
+  "entryPoints": {
+    "service": "Service.qml"
+  }
+}

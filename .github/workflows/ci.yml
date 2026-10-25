@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install tools
-        run: sudo apt-get update && sudo apt-get install -y shellcheck udev systemd
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
 
       - name: Lint shell scripts
         run: |
@@ -43,76 +43,19 @@ jobs:
             echo "OK"
           done
 
-      - name: Validate systemd unit files
+      - name: Check Python TUI
         run: |
-          shopt -s globstar nullglob
-          units=(**/*.service)
-          if [ ${#units[@]} -eq 0 ]; then
-            echo "No systemd unit files found"
-            exit 0
-          fi
-          # systemd-analyze verify refuses to pass unless every ExecStart
-          # binary exists on the runner, which cannot hold a machine-local
-          # install path like /home/user/.... So validate structure and keys
-          # syntactically instead: well-formed sections, valid assignments,
-          # and quoted arguments.
-          echo "Verifying ${#units[@]} systemd unit file(s)..."
-          ok=1
-          avail_sections='Unit|Service|Install|Target|Timer|Socket|Path|Mount|Automount|Swap|Slice|Scope'
-          for f in "${units[@]}"; do
-            echo "  $f ..."
-            line=0
-            section=""
-            while IFS= read -r l || [[ -n $l ]]; do
-              line=$((line + 1))
-              l=${l//$'\r'/}
-              [[ -z $l || $l == \#* || $l == \;* ]] && continue
-              if [[ $l == \[*\] ]]; then
-                if ! [[ $l =~ ^\[($avail_sections)\]$ ]]; then
-                  echo "    error:$line: unknown section $l" >&2
-                  ok=0
-                fi
-                section=${l//[\[\]]/}
-                continue
-              fi
-              if ! [[ $l == *=* ]]; then
-                echo "    error:$line: invalid assignment (no '='): $l" >&2
-                ok=0
-                continue
-              fi
-              key=${l%%=*}
-              key=${key// /}
-              if ! [[ $key =~ ^[A-Za-z]+$ ]]; then
-                echo "    error:$line: invalid key '$key' in [$section]" >&2
-                ok=0
-              fi
-              case $section in
-                Service)
-                  if [[ $key == ExecStart* ]]; then
-                    val=${l#*=}
-                    # Relative paths are not allowed for Exec* directives.
-                    if [[ $val =~ ^[^/] ]]; then
-                      echo "    error:$line: ExecStart requires an absolute path: $l" >&2
-                      ok=0
-                    fi
-                  fi
-                  ;;
-              esac
-            done < "$f"
-          done
-          [[ $ok == 1 ]] || exit 1
-          echo "All systemd unit files OK"
+          python3 -c "import ast; ast.parse(open('omarchy-power-config').read())"
 
-      - name: Validate udev rules
+      - name: Validate logind drop-ins
         run: |
-          shopt -s globstar nullglob
-          rules=(**/*.rules)
-          if [ ${#rules[@]} -eq 0 ]; then
-            echo "No udev rules found"
-            exit 0
-          fi
-          echo "Verifying ${#rules[@]} udev rule file(s)..."
-          for f in "${rules[@]}"; do
+          shopt -s nullglob
+          for f in logind/*.conf; do
             echo -n "  $f ... "
-            udevadm verify "$f" && echo "OK" || exit 1
+            grep -qx '\[Login\]' "$f"
+            if grep -vE '^(#.*|\[Login\]|[A-Za-z]+=[a-z-]+)?$' "$f"; then
+              echo "unexpected line(s) above" >&2
+              exit 1
+            fi
+            echo "OK"
           done

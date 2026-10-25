@@ -5,18 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- **Configuration TUI** (`omarchy-power-config`): interactive editor for the
-  per-power-source logind behavior (idle action / timeout, lid close on
-  normal, external power, and docked) and the shell idle timings
-  (screensaver / screen off-lock). No external dependencies; pure stdlib
-  `curses`. Applying writes the central config under sudo, regenerates the
-  logind drop-in, and updates `~/.config/omarchy/shell.json`.
-- **Central config** (`config/power.conf` → `/etc/omarchy-power/power.conf`):
-  `switch-power-behavior.sh` now reads AC/battery profiles from this file
-  (falling back to the previous hardcoded defaults when absent), overridable
-  via the `POWER_CONFIG` environment variable.
+- **Idle sleep moved into the Omarchy shell** as the
+  `omarchy-power.idle-sleep` service plugin. logind's `IdleAction=` never
+  fired on Omarchy because nothing in the session reports an idle hint to
+  logind, so "suspend after 30 minutes idle on battery" never happened. The
+  plugin tracks Wayland idle itself, picks the AC or battery timeout when it
+  fires, and honours Stay Awake, Wayland idle inhibitors and
+  `systemd-inhibit --what=idle`.
+- **Lid close is a static logind drop-in** (`logind/20-omarchy-power.conf`):
+  logind already chooses `HandleLidSwitchExternalPower=` on AC and
+  `HandleLidSwitch=` on battery, so nothing needs to switch on plug/unplug.
+- **Configuration TUI** (`omarchy-power-config`) now edits the plugin entry in
+  `~/.config/omarchy/shell.json` (no sudo) and the lid drop-in (sudo, only
+  when a lid setting changed), plus the shell screensaver / lock timings.
+- New `install.sh` installs, upgrades from 1.x, and uninstalls
+  (`--uninstall`).
+
+### Removed
+
+- The udev rule, boot service and `switch-power-behavior.sh` that rewrote the
+  logind drop-in as root on every AC change, and the `power.conf` they read.
+  `install.sh` removes an existing 1.x install, including setups whose root
+  udev rule / service still ran a user-writable script from
+  `~/.config/omarchy/power/`.
 
 ## [1.0.2] - 2026-10-07
 

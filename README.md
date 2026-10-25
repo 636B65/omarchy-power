@@ -20,6 +20,11 @@ stays on regardless of power source.
 
 ## How it works
 
+![omarchy-power architecture](docs/architecture.svg)
+
+The diagram source is [`docs/architecture.drawio`](docs/architecture.drawio);
+edit it in draw.io and push, and CI regenerates `docs/architecture.svg`.
+
 Nothing reacts to plug/unplug events; both halves already know the power
 source at the moment they act.
 
@@ -57,6 +62,7 @@ session reports an idle hint, and the Omarchy shell never does, so
 | `logind/20-omarchy-power.conf`  | Lid-close behavior per power source                             |
 | `omarchy-power-config`          | TUI to edit idle sleep, lid close and shell idle timings        |
 | `config/shell.idle.json`        | Reference snippet for the shell screensaver / lock timings      |
+| `docs/architecture.drawio`      | Architecture diagram source; CI exports `docs/architecture.svg` |
 
 ## Installation
 

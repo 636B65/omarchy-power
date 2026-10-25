@@ -3,6 +3,14 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- Architecture diagram (`docs/architecture.drawio`), shown in the README.
+  A new `Diagram` workflow exports it to `docs/architecture.svg` with
+  draw.io desktop and commits the result whenever the source changes.
+
 ## [2.0.0] - 2026-10-25
 
 ### Changed

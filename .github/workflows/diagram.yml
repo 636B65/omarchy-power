@@ -1,0 +1,61 @@
+name: Diagram
+
+# Exports docs/*.drawio to SVG and commits the result to the same branch.
+# Commits pushed with GITHUB_TOKEN do not trigger workflows, so this cannot
+# loop.
+
+on:
+  push:
+    paths:
+      - "docs/*.drawio"
+      - ".github/workflows/diagram.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DRAWIO_VERSION: "31.7.0"
+
+jobs:
+  export-svg:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install draw.io desktop
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libasound2t64 libgbm1 libnss3 libxss1
+          deb="drawio-amd64-${DRAWIO_VERSION}.deb"
+          curl -fsSLo "/tmp/$deb" \
+            "https://github.com/jgraph/drawio-desktop/releases/download/v${DRAWIO_VERSION}/$deb"
+          sudo apt-get install -y "/tmp/$deb"
+
+      - name: Export SVG
+        run: |
+          shopt -s nullglob
+          for src in docs/*.drawio; do
+            out="${src%.drawio}.svg"
+            echo "  $src -> $out"
+            xvfb-run -a drawio --no-sandbox --disable-gpu \
+              -x -f svg --theme light -o "$out" "$src"
+            # draw.io adds a PNG fallback copy of every HTML label for viewers
+            # without foreignObject support; browsers (and GitHub) never use
+            # them, and they make up ~95% of the file.
+            sed -E -i 's#<image [^>]*xlink:href="data:image/png;base64,[^"]*"[^>]*/>##g' "$out"
+            grep -q '<svg' "$out"
+          done
+
+      - name: Commit updated SVG
+        run: |
+          git add docs/*.svg
+          if git diff --cached --quiet; then
+            echo "SVG already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate architecture SVG from draw.io"
+          git push

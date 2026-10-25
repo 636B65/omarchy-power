@@ -86,6 +86,7 @@ install_all() {
   fi
 
   step "Enabling $PLUGIN_ID in $SHELL_JSON"
+  # shellcheck disable=SC2016 # $id is a jq variable, not a shell one.
   edit_shell_json --arg id "$PLUGIN_ID" '
     .plugins = (.plugins // [])
     | if any(.plugins[]; .id == $id) then .
@@ -119,6 +120,7 @@ uninstall_all() {
   step "Removing the idle-sleep plugin"
   rm -rf "$PLUGIN_DIR"
   if [[ -f $SHELL_JSON ]]; then
+    # shellcheck disable=SC2016 # $id is a jq variable, not a shell one.
     edit_shell_json --arg id "$PLUGIN_ID" '
       if .plugins then .plugins |= map(select(.id != $id)) else . end'
   fi

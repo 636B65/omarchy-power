@@ -29,6 +29,12 @@ LEGACY_DIRS=(/etc/omarchy-power)
 
 step() { printf '\n==> %s\n' "$*"; }
 
+# `omarchy plugin add` clones this repo straight into $PLUGIN_DIR; that
+# checkout is the plugin, managed by `omarchy plugin update/remove`.
+plugin_is_git_managed() {
+  [[ -d $PLUGIN_DIR/.git || $REPO_DIR -ef $PLUGIN_DIR ]]
+}
+
 if [[ $EUID -eq 0 ]]; then
   echo "Run this as your normal user, not root; it uses sudo where needed." >&2
   exit 1
@@ -68,15 +74,19 @@ remove_legacy() {
 }
 
 install_all() {
-  step "Installing the idle-sleep shell plugin to $PLUGIN_DIR"
   local plugin_upgraded=0 f
-  for f in manifest.json Service.qml; do
-    if [[ -f $PLUGIN_DIR/$f ]] && ! cmp -s "$REPO_DIR/plugin/$f" "$PLUGIN_DIR/$f"; then
-      plugin_upgraded=1
-    fi
-  done
-  mkdir -p "$PLUGIN_DIR"
-  install -m 0644 "$REPO_DIR/plugin/manifest.json" "$REPO_DIR/plugin/Service.qml" "$PLUGIN_DIR/"
+  if plugin_is_git_managed; then
+    step "Idle-sleep plugin is managed by 'omarchy plugin' in $PLUGIN_DIR; leaving it as is"
+  else
+    step "Installing the idle-sleep shell plugin to $PLUGIN_DIR"
+    for f in manifest.json Service.qml; do
+      if [[ -f $PLUGIN_DIR/$f ]] && ! cmp -s "$REPO_DIR/$f" "$PLUGIN_DIR/$f"; then
+        plugin_upgraded=1
+      fi
+    done
+    mkdir -p "$PLUGIN_DIR"
+    install -m 0644 "$REPO_DIR/manifest.json" "$REPO_DIR/Service.qml" "$PLUGIN_DIR/"
+  fi
 
   # Without a user shell.json the shell runs on the packaged defaults, and it
   # does not merge them back in once the file exists, so start from a copy.
@@ -117,9 +127,13 @@ install_all() {
 }
 
 uninstall_all() {
-  step "Removing the idle-sleep plugin"
-  rm -rf "$PLUGIN_DIR"
-  if [[ -f $SHELL_JSON ]]; then
+  if plugin_is_git_managed; then
+    step "Leaving the idle-sleep plugin to 'omarchy plugin'; remove it with: omarchy plugin remove $PLUGIN_ID"
+  else
+    step "Removing the idle-sleep plugin"
+    rm -rf "$PLUGIN_DIR"
+  fi
+  if [[ -f $SHELL_JSON ]] && ! plugin_is_git_managed; then
     # shellcheck disable=SC2016 # $id is a jq variable, not a shell one.
     edit_shell_json --arg id "$PLUGIN_ID" '
       if .plugins then .plugins |= map(select(.id != $id)) else . end'

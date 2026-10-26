@@ -58,13 +58,37 @@ session reports an idle hint, and the Omarchy shell never does, so
 | File                            | Purpose                                                        |
 | ------------------------------- | -------------------------------------------------------------- |
 | `install.sh`                    | Installs / upgrades / uninstalls everything below               |
-| `plugin/`                       | `omarchy-power.idle-sleep` shell service plugin                 |
+| `manifest.json`, `Service.qml`  | `omarchy-power.idle-sleep` shell service plugin                 |
 | `logind/20-omarchy-power.conf`  | Lid-close behavior per power source                             |
 | `omarchy-power-config`          | TUI to edit idle sleep, lid close and shell idle timings        |
 | `config/shell.idle.json`        | Reference snippet for the shell screensaver / lock timings      |
 | `docs/architecture.drawio`      | Architecture diagram source; CI exports `docs/architecture.svg` |
 
 ## Installation
+
+### Idle sleep only, from the Omarchy plugin marketplace
+
+```bash
+omarchy plugin add https://github.com/636B65/omarchy-power.git --enable
+```
+
+This clones the repo into `~/.config/omarchy/plugins/omarchy-power.idle-sleep/`
+and enables the idle-sleep plugin with the defaults above (never on AC, after
+30 minutes on battery). `omarchy plugin` never runs install scripts or sudo,
+so lid close and the TUI are not set up; for those, also run `./install.sh`
+from that directory (see below). Update with
+`omarchy plugin update omarchy-power.idle-sleep`.
+
+Remove with:
+
+```bash
+omarchy plugin remove omarchy-power.idle-sleep
+```
+
+If you also ran `./install.sh`, run `./install.sh --uninstall` from the plugin
+directory first to remove the lid drop-in and the TUI.
+
+### Everything, with the installer
 
 Run as your normal user (it uses `sudo` for the `/etc` parts):
 
@@ -74,9 +98,10 @@ Run as your normal user (it uses `sudo` for the `/etc` parts):
 
 This:
 
-1. copies `plugin/` to `~/.config/omarchy/plugins/omarchy-power.idle-sleep/`
-   and enables it in `~/.config/omarchy/shell.json` with the defaults above
-   (an existing entry is left as is);
+1. copies the plugin (`manifest.json`, `Service.qml`) to
+   `~/.config/omarchy/plugins/omarchy-power.idle-sleep/` and enables it in
+   `~/.config/omarchy/shell.json` with the defaults above (an existing entry is
+   left as is); a checkout made by `omarchy plugin add` is left in place;
 2. removes a 1.x install if present (udev rule, boot service,
    `/usr/local/bin/omarchy-power-behavior`, the generated logind drop-in and
    `/etc/omarchy-power`);
@@ -84,7 +109,13 @@ This:
    and reloads `systemd-logind` (reload, never restart, which would end your
    session).
 
-Uninstall with `./install.sh --uninstall`.
+Uninstall with `./install.sh --uninstall`. A plugin added with
+`omarchy plugin add` is left for `omarchy plugin remove`.
+
+To switch an installer-copied plugin to the marketplace one, delete
+`~/.config/omarchy/plugins/omarchy-power.idle-sleep/` first (`omarchy plugin
+add` refuses to overwrite an existing plugin directory), then add it. Your
+settings in `shell.json` stay as they are.
 
 ## Configure with the TUI
 

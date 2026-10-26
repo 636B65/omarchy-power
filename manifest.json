@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "omarchy-power.idle-sleep",
   "name": "Idle sleep",
-  "version": "2.0.0",
-  "author": "omarchy-power",
+  "version": "2.1.0",
+  "author": "636B65",
   "license": "MIT",
   "description": "Suspend (or hibernate) after a per-power-source idle timeout. Respects Stay Awake and idle inhibitors.",
   "kinds": [

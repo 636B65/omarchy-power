@@ -3,6 +3,26 @@
 All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- **Omarchy plugin marketplace support.** The repo is now an installable
+  Omarchy plugin: `omarchy plugin add https://github.com/636B65/omarchy-power.git`
+  installs the idle-sleep service on its own. Lid close and the TUI still
+  come from `install.sh`.
+- MIT `LICENSE` file.
+
+### Changed
+
+- The plugin's `manifest.json` and `Service.qml` moved from `plugin/` to the
+  repo root, which is where the marketplace expects them.
+- Manifest `author` is now `636B65`, and its `version` tracks the release
+  (it was left at 2.0.0 in 2.0.1).
+- `install.sh` leaves a plugin checkout made by `omarchy plugin add` alone:
+  it doesn't copy over it, and `--uninstall` leaves it for
+  `omarchy plugin remove`.
+
 ## [2.0.1] - 2026-10-25
 
 ### Added
